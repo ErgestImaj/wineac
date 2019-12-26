@@ -76,7 +76,7 @@ final class Wineac{
     private function initialize_hooks() {
      $products = new GetDataFromWineAc;
      $stocks = $products->getStocks();
-     //error_log(print_r($stocks,true));
+
     }
 
 

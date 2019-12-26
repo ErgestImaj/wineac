@@ -57,7 +57,7 @@ class GetDataFromWineAc
         // Close cURL session handle
         curl_close($ch);
 
-       return $result;
+       return json_decode($result,true);
 
     }
 	/*
