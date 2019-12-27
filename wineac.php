@@ -74,10 +74,18 @@ final class Wineac{
      * @access    private
      */
     private function initialize_hooks() {
-     $products = new GetDataFromWineAc;
-    // $stocks = $products->getStocks();
-     $stockDetails = $products->getStockDetails(835);
-     error_log(print_r( $stockDetails,true));
+     $apiproducts = new GetDataFromWineAc;
+
+     $stocks = $apiproducts->getStocks();
+     if (is_array($stocks) && isset($stocks['itemList'])){
+        $items = new itemList($stocks['itemList'],$apiproducts);
+     //   $items->saveProducts();
+
+     }
+
+    // $stockDetails = $products->getStockDetails(835);
+     //$stockDetails = $apiproducts->getStockPhoto('https://www.wineac.com:12443/wineactb/rest/wineac/stocks/432/photo/0');
+    // error_log(print_r( $stockDetails,true));
     }
 
 

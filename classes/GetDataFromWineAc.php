@@ -11,6 +11,9 @@ class GetDataFromWineAc
     private $user = 'apitest';
     private $pass = 'dest2019';
 
+    const DIRECTORY_SEPARATOR = '/';
+    const DIRECTORY_IMAGES ='temp';
+    const IMAGE_NAME ='image.jpg';
 
     /**
      * Get all stock items for sale No Auth required
@@ -53,9 +56,47 @@ class GetDataFromWineAc
     }
 	/*
 	 * Get stock item photo The URL can obtain from /stocks/itemList/photoURLs No Auth required
+	 * https://devnetwork.io/add-woocommerce-product-programmatically/
 	 */
-    public function getStockPhoto(){
+    public function getStockPhoto($image_url){
 
+        $directory_path = WINEAC_DIR_PATH.self::DIRECTORY_IMAGES;
+        $file_path = WINEAC_DIR_PATH.self::DIRECTORY_IMAGES.self::DIRECTORY_SEPARATOR.self::IMAGE_NAME;
+
+        if (!file_exists($directory_path)) {
+            mkdir($directory_path, 0777, true);
+        }
+
+        $arrContextOptions=array(
+            "ssl"=>array(
+                "verify_peer"=>false,
+                "verify_peer_name"=>false,
+            ),
+        );
+        $html = file_get_contents($image_url, false, stream_context_create($arrContextOptions));
+        preg_match_all( '|<img.*? src=[\'"](.*?)[\'"].*?>|i',$html, $matches );
+        echo $html;
+        die();
+       // file_put_contents( $file_path, $matches );
+
+
+     //   die();
+
+        $fp =fopen($file_path , 'wb');
+
+        $ch = curl_init($image_url);
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        //avoid SSL issues, we need to fetch from https
+        curl_setopt($ch,  CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch,  CURLOPT_SSL_VERIFYPEER, 0);
+       $results =  curl_exec($ch);
+//        var_dump( curl_exec($ch));
+//        die();
+        curl_close($ch);
+        fclose($fp);
+        echo $results;
+        die();
     }
     /*
      * Get stock item detail, include lot information.
