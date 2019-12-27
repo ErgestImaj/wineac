@@ -43,22 +43,7 @@ class GetDataFromWineAc
 
         // Prepare new cURL resource
         $ch = curl_init($this->api_url.'/?limit=0&showAllStock=N');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-        //avoid SSL issues, we need to fetch from https
-        curl_setopt($ch,  CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch,  CURLOPT_SSL_VERIFYPEER, 0);
-
-
-	    if (!$result =curl_exec($ch)) {
-		    error_log(print_r('Error: "' . curl_error($ch) . '" - Code: ' . curl_errno($ch),true));
-	    }
-
-        // Close cURL session handle
-        curl_close($ch);
-
-       return json_decode($result,true);
-
+        return  $this->execute($ch);
     }
 	/*
 	* Get storage items of particular user Basic Auth required
@@ -74,8 +59,39 @@ class GetDataFromWineAc
     }
     /*
      * Get stock item detail, include lot information.
+     * $st_irg =>  Ref No
      */
-    public function getStockDetails(){
+    public function getStockDetails($st_irg){
+	    // Prepare new cURL resource
+	    $ch = curl_init($this->api_url.'/'.$st_irg);
+	    return  $this->execute($ch,true);
+    }
 
+    public function execute($ch,$auth = false){
+
+    	if ($auth){
+		    curl_setopt($ch, CURLOPT_USERPWD, $this->user . ":" . $this->pass);
+		    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+	    }
+
+
+	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	    curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+	    //avoid SSL issues, we need to fetch from https
+	    curl_setopt($ch,  CURLOPT_SSL_VERIFYHOST, 0);
+	    curl_setopt($ch,  CURLOPT_SSL_VERIFYPEER, 0);
+
+	    try {
+		    $result = curl_exec($ch);
+		    return json_decode($result,true);
+	    }catch (Exception $exception){
+		    Logger::writeLog([
+			    $exception->getMessage(),
+			    'Error: "' . curl_error($ch) . '" - Code: ' . curl_errno($ch)
+		    ]);
+	    }
+
+	    // Close cURL session handle
+	    curl_close($ch);
     }
 }

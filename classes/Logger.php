@@ -13,7 +13,7 @@ class Logger
      * log data to file
      * @param $data
      */
-    public static function logInFile($data){
+    public static function writeLog($data){
 
         $directory_path = WINEAC_DIR_PATH.self::DIRECTORY_LOGS;
         $file_path = WINEAC_DIR_PATH.self::DIRECTORY_LOGS.self::DIRECTORY_SEPARATOR.self::LOGS_FILE;
