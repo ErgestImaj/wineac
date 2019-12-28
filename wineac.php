@@ -37,12 +37,13 @@ final class Wineac{
     protected $version;
 
 
-    private function __construct() {
+    public function __construct() {
         $this->version= '1.0';
 
         spl_autoload_register( array( $this, 'load' ) );
 
-        $this->initialize_hooks();
+	    add_action( 'init', [$this,'initialize_hooks'] );
+
     }
 
     /**
@@ -71,21 +72,17 @@ final class Wineac{
      * Initializes this plugin and the dependency loader to include
      * the assets necessary for the plugin to function.
      *
-     * @access    private
+     * @access   public
      */
-    private function initialize_hooks() {
+    public function initialize_hooks() {
      $apiproducts = new GetDataFromWineAc;
 
      $stocks = $apiproducts->getStocks();
      if (is_array($stocks) && isset($stocks['itemList'])){
         $items = new itemList($stocks['itemList'],$apiproducts);
-     //   $items->saveProducts();
-
+        //$items->saveProducts();
      }
 
-    // $stockDetails = $products->getStockDetails(835);
-     //$stockDetails = $apiproducts->getStockPhoto('https://www.wineac.com:12443/wineactb/rest/wineac/stocks/432/photo/0');
-    // error_log(print_r( $stockDetails,true));
     }
 
 

@@ -10,9 +10,8 @@ class GetDataFromWineAc
     private $api_url = 'https://www.wineac.com:12443/wineactb/rest/wineac/stocks';
     private $user = 'apitest';
     private $pass = 'dest2019';
+    private $fps;
 
-    const DIRECTORY_SEPARATOR = '/';
-    const DIRECTORY_IMAGES ='temp';
     const IMAGE_NAME ='image.jpg';
 
     /**
@@ -58,45 +57,55 @@ class GetDataFromWineAc
 	 * Get stock item photo The URL can obtain from /stocks/itemList/photoURLs No Auth required
 	 * https://devnetwork.io/add-woocommerce-product-programmatically/
 	 */
-    public function getStockPhoto($image_url){
+    public function getStockPhoto($image_url,$product_id,$flag=0){
 
-        $directory_path = WINEAC_DIR_PATH.self::DIRECTORY_IMAGES;
-        $file_path = WINEAC_DIR_PATH.self::DIRECTORY_IMAGES.self::DIRECTORY_SEPARATOR.self::IMAGE_NAME;
+	    $upload_dir = wp_upload_dir(); // Set upload folder
+	    $unique_file_name = wp_unique_filename( $upload_dir['path'],  self::IMAGE_NAME ); //    Generate unique name
+	    $filename = basename( $unique_file_name ); // Create image file name
+	    // Check folder permission and define file location
+	    if( wp_mkdir_p( $upload_dir['path'] ) ) {
+		    $file = $upload_dir['path'] . '/' . $filename;
+	    } else {
+		    $file = $upload_dir['basedir'] . '/' . $filename;
+	    }
+	    // Create the image file on the server
+	    $this->fp = fopen($file , 'wb');
 
-        if (!file_exists($directory_path)) {
-            mkdir($directory_path, 0777, true);
-        }
+	    $this->execute(curl_init($image_url),false,true);
 
-        $arrContextOptions=array(
-            "ssl"=>array(
-                "verify_peer"=>false,
-                "verify_peer_name"=>false,
-            ),
-        );
-        $html = file_get_contents($image_url, false, stream_context_create($arrContextOptions));
-        preg_match_all( '|<img.*? src=[\'"](.*?)[\'"].*?>|i',$html, $matches );
-        echo $html;
-        die();
-       // file_put_contents( $file_path, $matches );
+	    // Check image file type
+	    $wp_filetype = wp_check_filetype( $filename, null );
 
+	    // Set attachment data
+	    $attachment = array(
+		    'post_mime_type' => $wp_filetype['type'],
+		    'post_title' => sanitize_file_name( $filename ),
+		    'post_content' => '',
+		    'post_status' => 'inherit'
+	    );
+	    // Create the attachment
+	    $attach_id = wp_insert_attachment( $attachment, $file, $product_id );
 
-     //   die();
+	    // Check image file type
+	    $wp_filetype = wp_check_filetype(  $filename, null );
 
-        $fp =fopen($file_path , 'wb');
+	    // Include image.php
+	    require_once(ABSPATH . 'wp-admin/includes/image.php');
+	    // Define attachment metadata
+	    $attach_data = wp_generate_attachment_metadata( $attach_id,$file );
+	    // Assign metadata to attachment
+	    wp_update_attachment_metadata( $attach_id, $attach_data );
+	    // asign to feature image
 
-        $ch = curl_init($image_url);
-        curl_setopt($ch, CURLOPT_FILE, $fp);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        //avoid SSL issues, we need to fetch from https
-        curl_setopt($ch,  CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch,  CURLOPT_SSL_VERIFYPEER, 0);
-       $results =  curl_exec($ch);
-//        var_dump( curl_exec($ch));
-//        die();
-        curl_close($ch);
-        fclose($fp);
-        echo $results;
-        die();
+		 set_post_thumbnail( $product_id, $attach_id );
+
+	    // assign to the product gallery
+	    if( $flag == 1 ) {
+		    // Add gallery image to product
+		    $attach_id_array = get_post_meta( $product_id, '_product_image_gallery', true );
+		    $attach_id_array .= ',' . $attach_id;
+		    update_post_meta( $product_id, '_product_image_gallery', $attach_id_array );
+	    }
     }
     /*
      * Get stock item detail, include lot information.
@@ -108,19 +117,22 @@ class GetDataFromWineAc
 	    return  $this->execute($ch,true);
     }
 
-    public function execute($ch,$auth = false){
+    public function execute($ch,$auth = false,$isFile = false){
 
     	if ($auth){
 		    curl_setopt($ch, CURLOPT_USERPWD, $this->user . ":" . $this->pass);
 		    curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
 	    }
 
-
 	    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	    curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 	    //avoid SSL issues, we need to fetch from https
 	    curl_setopt($ch,  CURLOPT_SSL_VERIFYHOST, 0);
 	    curl_setopt($ch,  CURLOPT_SSL_VERIFYPEER, 0);
+
+	    if ($isFile){
+		    curl_setopt($ch, CURLOPT_FILE, $this->fp);
+	    }
 
 	    try {
 		    $result = curl_exec($ch);

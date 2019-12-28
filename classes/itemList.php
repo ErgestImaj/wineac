@@ -13,23 +13,19 @@ class itemList
         $this->apiproducts = $apiproducts;
     }
     public function saveProducts(){
-
-        foreach ($this->readProducts() as $product):
+        $products =$this->readProducts();
+        foreach ( $products as $product):
 
             $stockDetails = $this->apiproducts->getStockDetails($product['st_irg']);
 
-            $stock_qty = $stockDetails['lotList']['pdls_stockqty'] ?? 0;
+            $stock_qty = $stockDetails['lotList'][0]['pdls_stockqty'] ?? 0;
 
             $stock_status = 'instock';
 
             if ($stock_qty == 0) {
                 $stock_status = 'outofstock';
             }
-            $cats = get_terms('product_cat', array('hide_empty' => 0, 'orderby' => 'ASC',  'parent' =>0));
-            print_r($cats);
-            die();
-            var_dump($this->getProductCategoryIDByName($product['sttp_name']));
-            die();
+
             $product_id = wp_insert_post( array(
                 'post_author' => 1,
                 'post_title' => $product['st_iname'],
@@ -42,6 +38,11 @@ class itemList
             wp_set_object_terms( $product_id, 'simple', 'product_type' );
 
             wp_set_object_terms( $product_id, $this->getProductCategoryIDByName($product['sttp_name']), 'product_cat' );
+            if (is_array($product['photoURLs']) && !empty($product['photoURLs'])){
+            	foreach ($product['photoURLs'] as $image){
+		            $this->apiproducts->getStockPhoto($image, $product_id);
+	            }
+            }
 
 
             $metas = array(
@@ -72,24 +73,23 @@ class itemList
                 update_post_meta($product_id, $key, $value);
             }
 
-          die();
+
         endforeach;
     }
 
     public function getProductCategoryIDByName($prod_cat){
 
-      var_dump(taxonomy_exists('product_type'));
         if(!term_exists($prod_cat, 'product_cat')){
 
             $term = wp_insert_term($prod_cat, 'product_cat');
-            var_dump( $term);
+
             if ( is_wp_error( $term ) ) {
                return $term->error_data['term_exists'] ?? null;
             }
               return  $term['term_id'];
 
         }
-         var_dump(1);
+
         $term_s = get_term_by( 'name', $prod_cat, 'product_cat' );
 
         return $term_s->term_id ?? null;
