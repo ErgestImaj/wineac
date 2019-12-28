@@ -8,8 +8,11 @@ class GetDataFromWineAc
      * @access    private
      */
     private $api_url = 'https://www.wineac.com:12443/wineactb/rest/wineac/stocks';
+
     private $user = 'apitest';
+
     private $pass = 'dest2019';
+
     private $fps;
 
     const IMAGE_NAME ='image.jpg';
@@ -55,7 +58,7 @@ class GetDataFromWineAc
     }
 	/*
 	 * Get stock item photo The URL can obtain from /stocks/itemList/photoURLs No Auth required
-	 * https://devnetwork.io/add-woocommerce-product-programmatically/
+	 *
 	 */
     public function getStockPhoto($image_url,$product_id,$flag=0){
 
@@ -96,8 +99,10 @@ class GetDataFromWineAc
 	    // Assign metadata to attachment
 	    wp_update_attachment_metadata( $attach_id, $attach_data );
 	    // asign to feature image
-
-		 set_post_thumbnail( $product_id, $attach_id );
+	    if( $flag == 0){
+		    // And finally assign featured image to post
+		    set_post_thumbnail( $product_id, $attach_id );
+	    }
 
 	    // assign to the product gallery
 	    if( $flag == 1 ) {
@@ -106,6 +111,7 @@ class GetDataFromWineAc
 		    $attach_id_array .= ',' . $attach_id;
 		    update_post_meta( $product_id, '_product_image_gallery', $attach_id_array );
 	    }
+
     }
     /*
      * Get stock item detail, include lot information.

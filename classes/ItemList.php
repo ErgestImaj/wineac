@@ -1,7 +1,7 @@
 <?php
 
 
-class itemList
+class ItemList
 {
 
     private $products;
@@ -13,7 +13,7 @@ class itemList
         $this->apiproducts = $apiproducts;
     }
     public function saveProducts(){
-        $products =$this->readProducts();
+        $products = $this->readProducts();
         foreach ( $products as $product):
 
             $stockDetails = $this->apiproducts->getStockDetails($product['st_irg']);
@@ -38,9 +38,17 @@ class itemList
             wp_set_object_terms( $product_id, 'simple', 'product_type' );
 
             wp_set_object_terms( $product_id, $this->getProductCategoryIDByName($product['sttp_name']), 'product_cat' );
+            $flag = 0;
             if (is_array($product['photoURLs']) && !empty($product['photoURLs'])){
             	foreach ($product['photoURLs'] as $image){
-		            $this->apiproducts->getStockPhoto($image, $product_id);
+            		if ($flag == 0){
+			            $this->apiproducts->getStockPhoto($image, $product_id);
+		            }
+		            else{
+			            $this->apiproducts->getStockPhoto($image, $product_id,1);
+		            }
+
+		            ++$flag;
 	            }
             }
 
@@ -73,6 +81,19 @@ class itemList
                 update_post_meta($product_id, $key, $value);
             }
 
+            //Product details tab
+	        $details  = '<div class="table-details"><table class="winec_product_details"><tbody>';
+	        $details .= '<tr><td>'.__('Wine Name').'</td><td>'.$product['stbd_name'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Vintage').'</td><td>'.$product['st_vintage'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Region').'</td><td>'.$product['storg_name'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Appellation').'</td><td>'.$product['st_appellation'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Classification').'</td><td>'.$product['st_class'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Score').'</td><td>'.$product['st_core'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Maturity').'</td><td>'.$product['st_maturity'].'</td></tr>';
+	        $details .= '<tr><td>'.__('Packing').'</td><td>'.$product['st_msize1'].'x'.$product['st_msize2'].'ml</td></tr>';
+            $details .= '</tbody></table></div>';
+
+	        update_post_meta($product_id,'wineac_product_details',$details);
 
         endforeach;
     }

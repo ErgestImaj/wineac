@@ -75,13 +75,23 @@ final class Wineac{
      * @access   public
      */
     public function initialize_hooks() {
-     $apiproducts = new GetDataFromWineAc;
+	    //register metabox
+		 new RegisterMetaBox;
+		 //Register custom woocommerce tab
+		 new WoocommerceProductDetailsTab();
 
-     $stocks = $apiproducts->getStocks();
-     if (is_array($stocks) && isset($stocks['itemList'])){
-        $items = new itemList($stocks['itemList'],$apiproducts);
-        //$items->saveProducts();
-     }
+	     $apiproducts = new GetDataFromWineAc;
+
+	     $stocks = $apiproducts->getStocks();
+
+	    #to-do
+	    # make all this as a cron job
+	    # run cron periodicly to update data
+
+	     if (is_array($stocks) && isset($stocks['itemList'])){
+	       $items = new ItemList($stocks['itemList'],$apiproducts);
+	     //  $items->saveProducts();
+	     }
 
     }
 
@@ -95,4 +105,3 @@ final class Wineac{
     }
 }
 Wineac::get_instance();
-
