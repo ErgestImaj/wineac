@@ -19,7 +19,7 @@ class WoocommerceProductDetailsTab {
 		// Adds the new tab
 
 		$tabs['product_tab_data'] = array(
-			'title' 	=> __( 'Details', 'woocommerce' ),
+			'title' 	=> __( 'Details', 'wineac' ),
 			'priority' 	=> 50,
 			'callback' 	=>[$this, 'woo_new_product_tab_content']
 		);

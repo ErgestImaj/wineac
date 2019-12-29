@@ -10,7 +10,7 @@ class RegisterMetaBox {
 	public function register_details_tab(){
 		add_meta_box(
 			'register_details_tab',
-			__('Product Details','nd-learning'),
+			__('Product Details','wineac'),
 			[$this,'details_tab_form'],
 			'product',
 			'normal',

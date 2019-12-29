@@ -97,7 +97,7 @@ final class Wineac{
 	public function wineac_add_every_five_minutes( $schedules ) {
 		$schedules['every_five_minutes'] = array(
 			'interval'  => 300,
-			'display'   => __( 'Every 5 Minutes')
+			'display'   => __( 'Every 5 Minutes','wineac')
 		);
 		return $schedules;
 	}
