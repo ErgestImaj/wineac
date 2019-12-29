@@ -42,6 +42,8 @@ final class Wineac{
 
         spl_autoload_register( array( $this, 'load' ) );
 
+	    add_filter( 'cron_schedules', [$this,'wineac_add_every_five_minutes'] );
+
 	    add_action( 'init', [$this,'initialize_hooks'] );
 
     }
@@ -80,19 +82,41 @@ final class Wineac{
 		 //Register custom woocommerce tab
 		 new WoocommerceProductDetailsTab();
 
-	     $apiproducts = new GetDataFromWineAc;
 
-	     $stocks = $apiproducts->getStocks();
+	    if ( ! wp_next_scheduled( 'sync_products_with_api' ) ) {
+		    wp_schedule_event( time(), 'every_five_minutes', 'sync_products_with_api' );
+	    }
+		 add_action('sync_products_with_api', [$this,'sync_products_with_api_hook']);
 
-	    #to-do
-	    # make all this as a cron job
-	    # run cron periodicly to update data
 
-	     if (is_array($stocks) && isset($stocks['itemList'])){
-	       $items = new ItemList($stocks['itemList'],$apiproducts);
-	     //  $items->saveProducts();
-	     }
+    }
+    /*
+     * schedule event.
+     */
 
+	public function wineac_add_every_five_minutes( $schedules ) {
+		$schedules['every_five_minutes'] = array(
+			'interval'  => 300,
+			'display'   => __( 'Every 5 Minutes')
+		);
+		return $schedules;
+	}
+
+    /*
+     * Sync products
+     * define('DISABLE_WP_CRON', true);
+     * wget -O /dev/null https://hkdpl.com/wineac/wp-cron.php
+     */
+    public function sync_products_with_api_hook(){
+
+	    $apiproducts = new GetDataFromWineAc;
+
+	    $stocks = $apiproducts->getStocks();
+
+	    if (is_array($stocks) && isset($stocks['itemList'])){
+		    $items = new ItemList($stocks['itemList'],$apiproducts);
+		     $items->saveProducts();
+	    }
     }
 
 

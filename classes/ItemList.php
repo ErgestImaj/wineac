@@ -13,8 +13,8 @@ class ItemList
         $this->apiproducts = $apiproducts;
     }
     public function saveProducts(){
-        $products = $this->readProducts();
-        foreach ( $products as $product):
+
+        foreach ($this->products as $product):
 
             $stockDetails = $this->apiproducts->getStockDetails($product['st_irg']);
 
@@ -26,16 +26,32 @@ class ItemList
                 $stock_status = 'outofstock';
             }
 
-            $product_id = wp_insert_post( array(
-                'post_author' => 1,
-                'post_title' => $product['st_iname'],
-                'post_content' => '',
-                'post_status' => 'publish',
-                'post_type' => "product",
-            ) );
+            //check if product exists
+	        $wp_product = get_posts(array(
+		        'numberposts' => 1,
+		        'meta_key'    => 'wineac_api_key',
+		        'meta_value'  => $product['st_irg'],
+		        'post_type' => 'product',
+	        ));
+
+
+            if (empty($wp_product)){
+	            $product_id = wp_insert_post( array(
+		            'post_author' => 1,
+		            'post_title' => $product['st_iname'],
+		            'post_content' => '',
+		            'post_status' => 'publish',
+		            'post_type' => "product",
+	            ) );
+            }else{
+	            $product_id = $wp_product[0]->ID;
+
+            }
+
 
             // set product is simple/variable/grouped
             wp_set_object_terms( $product_id, 'simple', 'product_type' );
+
 
             wp_set_object_terms( $product_id, $this->getProductCategoryIDByName($product['sttp_name']), 'product_cat' );
             $flag = 0;
@@ -47,11 +63,21 @@ class ItemList
 		            else{
 			            $this->apiproducts->getStockPhoto($image, $product_id,1);
 		            }
-
 		            ++$flag;
 	            }
             }
 
+			//Product details tab
+	        $details  = '<div class="product-details-main"><ul class="winec_product_details">';
+	        $details .= '<li><span class="winec-key">'.__('Wine Name').'</span><span class="winec-dettails">'.$product['stbd_name'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Vintage').'</span><span class="winec-dettails">'.$product['st_vintage'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Region').'</span><span class="winec-dettails">'.$product['storg_name'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Appellation').'</span><span class="winec-dettails">'.$product['st_appellation'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Classification').'</span><span class="winec-dettails">'.$product['st_class'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Score').'</span><span class="winec-dettails">'.$product['st_core'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Maturity').'</span><span class="winec-dettails">'.$product['st_maturity'].'</span></li>';
+	        $details .= '<li><span class="winec-key">'.__('Packing').'</span><span class="winec-dettails">'.$product['st_msize1'].'x'.$product['st_msize2'].'ml</span></li>';
+	        $details .= '</ul></div>';
 
             $metas = array(
                 '_visibility' => 'visible',
@@ -75,25 +101,15 @@ class ItemList
                 '_sold_individually' => '',
                 '_manage_stock' => 'no',
                 '_backorders' => 'no',
-                '_stock' =>  $stock_qty
+	            'wineac_api_key'=>$product['st_irg'],
+	            'wineac_product_details'=>$details,
             );
             foreach ($metas as $key => $value) {
                 update_post_meta($product_id, $key, $value);
             }
+	        //Update a product's stock amount.
+	        wc_update_product_stock($product_id,$stock_qty,'set');
 
-            //Product details tab
-	        $details  = '<div class="table-details"><table class="winec_product_details"><tbody>';
-	        $details .= '<tr><td>'.__('Wine Name').'</td><td>'.$product['stbd_name'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Vintage').'</td><td>'.$product['st_vintage'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Region').'</td><td>'.$product['storg_name'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Appellation').'</td><td>'.$product['st_appellation'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Classification').'</td><td>'.$product['st_class'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Score').'</td><td>'.$product['st_core'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Maturity').'</td><td>'.$product['st_maturity'].'</td></tr>';
-	        $details .= '<tr><td>'.__('Packing').'</td><td>'.$product['st_msize1'].'x'.$product['st_msize2'].'ml</td></tr>';
-            $details .= '</tbody></table></div>';
-
-	        update_post_meta($product_id,'wineac_product_details',$details);
 
         endforeach;
     }
@@ -117,16 +133,6 @@ class ItemList
 
 
     }
-    /**
-     * @return Generator
-     */
-    public function readProducts(){
-
-        foreach ($this->products as $product)
-            yield $product;
-
-     }
-
 
 
 }
