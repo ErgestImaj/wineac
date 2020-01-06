@@ -42,7 +42,7 @@ final class Wineac{
 
         spl_autoload_register( array( $this, 'load' ) );
 
-	    add_filter( 'cron_schedules', [$this,'wineac_add_every_five_minutes'] );
+	    add_filter( 'cron_schedules', [$this,'wineac_add_every_fifteen_minutes'] );
 
 	    add_action( 'init', [$this,'initialize_hooks'] );
 
@@ -84,7 +84,7 @@ final class Wineac{
 
 
 	    if ( ! wp_next_scheduled( 'sync_products_with_api' ) ) {
-		    wp_schedule_event( time(), 'every_five_minutes', 'sync_products_with_api' );
+		    wp_schedule_event( time(), 'every_fifteen_minutes', 'sync_products_with_api' );
 	    }
 		 add_action('sync_products_with_api', [$this,'sync_products_with_api_hook']);
 
@@ -94,10 +94,10 @@ final class Wineac{
      * schedule event.
      */
 
-	public function wineac_add_every_five_minutes( $schedules ) {
-		$schedules['every_five_minutes'] = array(
-			'interval'  => 300,
-			'display'   => __( 'Every 5 Minutes','wineac')
+	public function wineac_add_every_fifteen_minutes( $schedules ) {
+		$schedules['every_fifteen_minutes'] = array(
+			'interval'  => 900,
+			'display'   => __( 'Every 15 Minutes','wineac')
 		);
 		return $schedules;
 	}

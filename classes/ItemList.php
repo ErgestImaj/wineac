@@ -26,7 +26,11 @@ class ItemList
                 $stock_status = 'outofstock';
             }
 
-            //check if product exists
+            /*
+             * check if product exists, i can use even wc_get_product_id_by_sku
+             * but maybe they add the same sku from backend
+             * just to be safe
+             */
 	        $wp_product = get_posts(array(
 		        'numberposts' => 1,
 		        'meta_key'    => 'wineac_api_key',
@@ -39,7 +43,7 @@ class ItemList
 	            $product_id = wp_insert_post( array(
 		            'post_author' => 1,
 		            'post_title' => $product['st_iname'],
-		            'post_content' => '',
+		            'post_content' => $product['sd_desc'],
 		            'post_status' => 'publish',
 		            'post_type' => "product",
 	            ) );
@@ -85,19 +89,19 @@ class ItemList
                 'total_sales' => '0',
                 '_downloadable' => 'no',
                 '_virtual' => 'yes',
-                '_regular_price' => '',
-                '_sale_price' => '',
+                '_regular_price' => $product['st_standardprice'],
+                '_sale_price' => $product['st_standardprice'],
                 '_purchase_note' => '',
                 '_featured' => 'no',
                 '_weight' => '',
                 '_length' => '',
                 '_width' => '',
                 '_height' => '',
-                '_sku' => $product['st_icode'],
+                '_sku' => $product['st_irg'],
                 '_product_attributes' => array(),
                 '_sale_price_dates_from' => '',
                 '_sale_price_dates_to' => '',
-                '_price' => '',
+                '_price' => $product['st_standardprice'],
                 '_sold_individually' => '',
                 '_manage_stock' => 'no',
                 '_backorders' => 'no',
