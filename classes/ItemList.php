@@ -16,6 +16,7 @@ class ItemList
 
         foreach ($this->products as $product):
 
+
             $stockDetails = $this->apiproducts->getStockDetails($product['st_irg']);
 
             $stock_qty = $stockDetails['lotList'][0]['pdls_stockqty'] ?? 0;
@@ -47,17 +48,32 @@ class ItemList
 		            'post_status' => 'publish',
 		            'post_type' => "product",
 	            ) );
+
             }else{
 	            $product_id = $wp_product[0]->ID;
 
             }
 
+            //delete old images if
+            $wc_product = wc_get_product( $product_id );
+
+            if(!empty($wc_product->get_image_id())){
+                wp_delete_attachment($wc_product->get_image_id(),true);
+            }
+
+             if (is_array($wc_product->get_gallery_image_ids())){
+                 foreach ($wc_product->get_gallery_image_ids() as $id){
+                     wp_delete_attachment($id,true);
+                 }
+             }
+
 
             // set product is simple/variable/grouped
             wp_set_object_terms( $product_id, 'simple', 'product_type' );
 
-
             wp_set_object_terms( $product_id, $this->getProductCategoryIDByName($product['sttp_name']), 'product_cat' );
+
+            //save featured image and gallery
             $flag = 0;
             if (is_array($product['photoURLs']) && !empty($product['photoURLs'])){
             	foreach ($product['photoURLs'] as $image){
@@ -73,14 +89,30 @@ class ItemList
 
 			//Product details tab
 	        $details  = '<div class="product-details-main"><ul class="winec_product_details">';
-	        $details .= '<li><span class="winec-key">'.__('Wine Name').'</span><span class="winec-dettails">'.$product['stbd_name'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Vintage').'</span><span class="winec-dettails">'.$product['st_vintage'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Region').'</span><span class="winec-dettails">'.$product['storg_name'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Appellation').'</span><span class="winec-dettails">'.$product['st_appellation'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Classification').'</span><span class="winec-dettails">'.$product['st_class'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Score').'</span><span class="winec-dettails">'.$product['st_core'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Maturity').'</span><span class="winec-dettails">'.$product['st_maturity'].'</span></li>';
-	        $details .= '<li><span class="winec-key">'.__('Packing').'</span><span class="winec-dettails">'.$product['st_msize1'].'x'.$product['st_msize2'].'ml</span></li>';
+            if (!empty($product['stbd_name']) && $product['stbd_name'] != 'Unknown')
+	            $details .= '<li><span class="winec-key wine-name">'.__('Wine Name').'</span><span class="winec-dettails">'.$product['stbd_name'].'</span></li>';
+
+            if (!empty($product['st_vintage']) && $product['st_vintage'] != 'Unknown')
+	            $details .= '<li><span class="winec-key vintage">'.__('Vintage').'</span><span class="winec-dettails">'.$product['st_vintage'].'</span></li>';
+
+            if (!empty($product['storg_name']) && $product['storg_name'] != 'Unknown')
+	            $details .= '<li><span class="winec-key region">'.__('Region').'</span><span class="winec-dettails">'.$product['storg_name'].'</span></li>';
+
+            if (!empty($product['st_appellation']) && $product['st_appellation'] != 'Unknown')
+	            $details .= '<li><span class="winec-key appellation">'.__('Appellation').'</span><span class="winec-dettails">'.$product['st_appellation'].'</span></li>';
+
+            if (!empty($product['st_class']) && $product['st_class'] != 'Unknown')
+	            $details .= '<li><span class="winec-key classification">'.__('Classification').'</span><span class="winec-dettails">'.$product['st_class'].'</span></li>';
+
+            if (!empty($product['st_core']) && $product['st_core'] != 'Unknown')
+	            $details .= '<li><span class="winec-key score">'.__('Score').'</span><span class="winec-dettails">'.$product['st_core'].'</span></li>';
+
+            if (!empty($product['st_maturity']) && $product['st_maturity'] != 'Unknown')
+	            $details .= '<li><span class="winec-key maturaty">'.__('Maturity').'</span><span class="winec-dettails">'.$product['st_maturity'].'</span></li>';
+
+            if (!empty($product['st_msize1']) && $product['st_msize1'] != 'Unknown')
+	            $details .= '<li><span class="winec-key packing">'.__('Packing').'</span><span class="winec-dettails">'.$product['st_msize1'].'x'.$product['st_msize2'].'ml</span></li>';
+
 	        $details .= '</ul></div>';
 
             $metas = array(
