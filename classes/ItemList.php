@@ -120,9 +120,9 @@ class ItemList
                 '_stock_status' => $stock_status,
                // 'total_sales' => '0',
                 '_downloadable' => 'no',
-                '_virtual' => 'yes',
-                '_regular_price' => $product['st_standardprice'],
-                '_sale_price' => $product['st_standardprice'],
+                //'_virtual' => 'no',
+                '_regular_price' => (int)$product['st_standardprice'],
+                '_sale_price' => '',
                 '_purchase_note' => '',
                 '_featured' => 'no',
                 '_weight' => '',
@@ -133,9 +133,9 @@ class ItemList
                 '_product_attributes' => array(),
                 '_sale_price_dates_from' => '',
                 '_sale_price_dates_to' => '',
-                '_price' => $product['st_standardprice'],
+                '_price' => '',
                 '_sold_individually' => '',
-                '_manage_stock' => 'no',
+                '_manage_stock' => 'yes',
                 '_backorders' => 'no',
 	            'wineac_api_key'=>$product['st_irg'],
 	            'wineac_product_details'=>$details,
@@ -145,6 +145,7 @@ class ItemList
             }
 	        //Update a product's stock amount.
 	        wc_update_product_stock($product_id,$stock_qty,'set');
+
 
 
         endforeach;
