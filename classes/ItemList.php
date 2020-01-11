@@ -54,7 +54,7 @@ class ItemList
 
             }
 
-            //delete old images if
+            //delete old images
             $wc_product = wc_get_product( $product_id );
 
             if(!empty($wc_product->get_image_id())){
@@ -133,7 +133,7 @@ class ItemList
                 '_product_attributes' => array(),
                 '_sale_price_dates_from' => '',
                 '_sale_price_dates_to' => '',
-                '_price' => '',
+                '_price' => (int)$product['st_standardprice'],
                 '_sold_individually' => '',
                 '_manage_stock' => 'yes',
                 '_backorders' => 'no',
@@ -170,6 +170,8 @@ class ItemList
 
 
     }
+
+
 
 
 }

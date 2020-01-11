@@ -4,19 +4,17 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 class WoocommerceProductDetailsTab {
 
 	public function __construct() {
-
+        // create new product tab
 		add_filter( 'woocommerce_product_tabs', [$this,'woo_new_product_tab'] );
 
+		// reorder product tabs
 		add_filter( 'woocommerce_product_tabs', [$this,'woo_reorder_tabs'], 98 );
 
+        // hide details tab if empty
         add_filter( 'woocommerce_product_tabs', [$this,'woo_remove_empty_tabs'], 20, 1 );
 
-        // Displayed formatted regular price + sale price
-        add_filter( 'woocommerce_product_get_regular_price', [$this,'custom_dynamic_regular_price'], 10, 2 );
-        add_filter( 'woocommerce_product_variation_get_regular_price', [$this,'custom_dynamic_regular_price'], 10, 2 );
-        add_filter( 'woocommerce_product_get_sale_price', [$this,'custom_dynamic_sale_price'], 10, 2 );
-        add_filter( 'woocommerce_product_variation_get_sale_price',[$this, 'custom_dynamic_sale_price'], 10, 2 );
-        add_filter( 'woocommerce_get_price_html', [$this,'custom_dynamic_sale_price_html'], 20, 2 );
+        // check if product is purchasable
+		add_filter( 'woocommerce_is_purchasable', [$this,'wc_product_is_purchasable'], 10, 2 );
 	}
 
 	/**
@@ -77,32 +75,12 @@ class WoocommerceProductDetailsTab {
             }
             return $tabs;
         }
-    // Generating dynamically the product "regular price"
 
-    public function custom_dynamic_regular_price( $regular_price, $product ) {
-        if( empty($regular_price) || $regular_price == 0 )
-            return $product->get_price();
-        else
-            return $regular_price;
-    }
+      public function wc_product_is_purchasable( $purchasable, $product ){
+	      if( $product->get_price() == 0 )
+		      $purchasable = false;
+	      return $purchasable;
+      }
 
 
-// Generating dynamically the product "sale price"
-
-    public function custom_dynamic_sale_price( $sale_price, $product ) {
-
-        if( empty($sale_price) || $sale_price == 0 )
-            return $product->get_regular_price();
-        else
-            return $sale_price;
-    }
-
-
-    public function custom_dynamic_sale_price_html( $price_html, $product ) {
-        if( $product->is_type('variable') ) return $price_html;
-
-        $price_html = wc_format_sale_price( wc_get_price_to_display( $product, array( 'price' => $product->get_regular_price() ) ), wc_get_price_to_display(  $product, array( 'price' => $product->get_sale_price() ) ) ) . $product->get_price_suffix();
-
-        return $price_html;
-    }
 }
