@@ -118,7 +118,7 @@ class ItemList
             $metas = array(
                 '_visibility' => 'visible',
                 '_stock_status' => $stock_status,
-                'total_sales' => '0',
+               // 'total_sales' => '0',
                 '_downloadable' => 'no',
                 '_virtual' => 'yes',
                 '_regular_price' => $product['st_standardprice'],

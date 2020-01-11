@@ -39,12 +39,18 @@ final class Wineac{
 
     public function __construct() {
         $this->version= '1.0';
-
+        /*load classes*/
         spl_autoload_register( array( $this, 'load' ) );
 
-	    add_filter( 'cron_schedules', [$this,'wineac_add_every_fifteen_minutes'] );
-
+        /*initialize hooks*/
 	    add_action( 'init', [$this,'initialize_hooks'] );
+
+        /*query vars*/
+        add_filter( 'query_vars', [$this,'wineac_query_vars'] );
+
+        /*template redirects*/
+        add_action( 'template_redirect', [$this,'wineac_trigger_check'] );
+
 
     }
 
@@ -83,40 +89,34 @@ final class Wineac{
 		 new WoocommerceProductDetailsTab();
 
 
-	    if ( ! wp_next_scheduled( 'sync_products_with_api' ) ) {
-		    wp_schedule_event( time(), 'every_fifteen_minutes', 'sync_products_with_api' );
-	    }
-		 add_action('sync_products_with_api', [$this,'sync_products_with_api_hook']);
-
-
     }
-    /*
-     * schedule event.
-     */
+    public function wineac_query_vars($vars) {
+        $vars[] = 'cron_job';
+        return $vars;
+    }
 
-	public function wineac_add_every_fifteen_minutes( $schedules ) {
-		$schedules['every_fifteen_minutes'] = array(
-			'interval'  => 900,
-			'display'   => __( 'Every 15 Minutes','wineac')
-		);
-		return $schedules;
-	}
+    public function wineac_trigger_check(){
+        if(intval(get_query_var('cron_job')) == 1) {
+            $this->sync_products_with_api_hook();
+            exit;
+        }
+    }
 
     /*
      * Sync products
-     * define('DISABLE_WP_CRON', true);
-     * wget -O /dev/null https://hkdpl.com/wineac/wp-cron.php
      */
     public function sync_products_with_api_hook(){
 
-	    $apiproducts = new GetDataFromWineAc;
+            $apiproducts = new GetDataFromWineAc;
 
-	    $stocks = $apiproducts->getStocks();
+            $stocks = $apiproducts->getStocks();
 
-	    if (is_array($stocks) && isset($stocks['itemList'])){
-		    $items = new ItemList($stocks['itemList'],$apiproducts);
-		     $items->saveProducts();
-	    }
+            if (is_array($stocks) && isset($stocks['itemList'])){
+                $items = new ItemList($stocks['itemList'],$apiproducts);
+                $items->saveProducts();
+            }
+            exit;
+
     }
 
 

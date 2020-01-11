@@ -13,8 +13,6 @@ class GetDataFromWineAc
 
     private $pass = 'dest2019';
 
-    private $fps;
-
     const IMAGE_NAME ='image.jpg';
 
     /**
