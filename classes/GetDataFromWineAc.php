@@ -140,15 +140,24 @@ class GetDataFromWineAc
 
 	    try {
 		    $result = curl_exec($ch);
+		    if($result === false){
+                Logger::writeLog([
+                    'Error: "' . curl_error($ch) . '" - Code: ' . curl_errno($ch)
+                ]);
+            }
+            // Close cURL session handle
+            curl_close($ch);
+
 		    return json_decode($result,true);
 	    }catch (Exception $exception){
+            // Close cURL session handle
+            curl_close($ch);
 		    Logger::writeLog([
 			    $exception->getMessage(),
 			    'Error: "' . curl_error($ch) . '" - Code: ' . curl_errno($ch)
 		    ]);
 	    }
 
-	    // Close cURL session handle
-	    curl_close($ch);
+
     }
 }
